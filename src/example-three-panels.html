@@ -46,6 +46,53 @@
             background-color: #fff3e0;
         }
 
+        /* Node Tree Styles */
+        .node-tree {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 10px;
+        }
+
+        .node {
+            margin: 5px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            user-select: none;
+        }
+
+        .node:hover {
+            background-color: #d1e7ff;
+        }
+
+        .node-content {
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .node-content:hover {
+            background-color: #b3d9ff;
+        }
+
+        .node-toggle {
+            margin-right: 5px;
+            width: 14px;
+            height: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .node-toggle.expanded {
+            transform: rotate(90deg);
+        }
+
+        .node-children {
+            margin-left: 25px;
+            padding-left: 10px;
+            border-left: 1px dashed #888;
+        }
+
         /* Responsive behavior */
         @media screen and (max-width: 768px) {
             .three-panel-container {
@@ -82,9 +129,10 @@
     
     <div class="three-panel-container">
         <section class="panel">
-            <h2>Panel 1</h2>
-            <p>This is the first panel of the three-panel layout. It displays content in a clean, organized way.</p>
-            <p>The panels are designed to be responsive and adapt to different screen sizes.</p>
+            <h2>Panel 1 - Node Tree</h2>
+            <div class="node-tree" id="nodeTree">
+                <!-- Node tree will be populated by JavaScript -->
+            </div>
         </section>
         
         <section class="panel">
@@ -120,6 +168,98 @@
         
         // Update on window resize
         window.addEventListener('resize', updatePanelCount);
+
+        // Node tree data structure
+        const nodeData = {
+            id: 'root',
+            name: 'Root Node',
+            expanded: true,
+            children: [
+                {
+                    id: 'node1',
+                    name: 'Child Node 1',
+                    expanded: false,
+                    children: [
+                        { id: 'sub1', name: 'Sub Node 1', expanded: false, children: [] },
+                        { id: 'sub2', name: 'Sub Node 2', expanded: false, children: [] }
+                    ]
+                },
+                {
+                    id: 'node2',
+                    name: 'Child Node 2',
+                    expanded: true,
+                    children: [
+                        { id: 'sub3', name: 'Sub Node 3', expanded: false, children: [] },
+                        { id: 'sub4', name: 'Sub Node 4', expanded: false, children: [] }
+                    ]
+                },
+                {
+                    id: 'node3',
+                    name: 'Child Node 3',
+                    expanded: false,
+                    children: []
+                }
+            ]
+        };
+
+        // Render node tree
+        function renderNodeTree(node, container) {
+            const nodeElement = document.createElement('div');
+            nodeElement.className = 'node';
+            nodeElement.dataset.id = node.id;
+            
+            const toggleElement = document.createElement('span');
+            toggleElement.className = `node-toggle ${node.children && node.children.length > 0 ? '' : 'hidden'}`;
+            toggleElement.innerHTML = node.children && node.children.length > 0 ? '▶' : '';
+            
+            if (node.children && node.children.length > 0) {
+                toggleElement.addEventListener('click', () => toggleNode(node, nodeElement));
+            }
+            
+            const contentElement = document.createElement('span');
+            contentElement.className = 'node-content';
+            contentElement.textContent = node.name;
+            
+            nodeElement.appendChild(toggleElement);
+            nodeElement.appendChild(contentElement);
+            
+            container.appendChild(nodeElement);
+            
+            if (node.expanded && node.children && node.children.length > 0) {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'node-children';
+                node.children.forEach(child => renderNodeTree(child, childrenContainer));
+                container.appendChild(childrenContainer);
+            }
+        }
+
+        // Toggle node expansion
+        function toggleNode(node, element) {
+            node.expanded = !node.expanded;
+            const toggleElement = element.querySelector('.node-toggle');
+            
+            if (node.expanded) {
+                toggleElement.classList.add('expanded');
+            } else {
+                toggleElement.classList.remove('expanded');
+            }
+            
+            // Re-render the subtree
+            const childrenContainer = element.nextElementSibling;
+            if (childrenContainer && childrenContainer.classList.contains('node-children')) {
+                if (node.expanded) {
+                    childrenContainer.style.display = 'block';
+                } else {
+                    childrenContainer.style.display = 'none';
+                }
+            }
+        }
+
+        // Initialize node tree
+        document.addEventListener('DOMContentLoaded', function() {
+            const nodeTreeElement = document.getElementById('nodeTree');
+            renderNodeTree(nodeData, nodeTreeElement);
+        });
     </script>
 </body>
 </html>
